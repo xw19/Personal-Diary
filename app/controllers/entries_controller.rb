@@ -1,16 +1,17 @@
 class EntriesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_entry, only: [:show, :edit, :update, :destroy]
+  before_action :set_entry, only: [:edit, :update, :destroy]
 
   # GET /entries
   # GET /entries.json
   def index
-    @entries = Entry.all
+    @entries = current_user.entries.order('created_at DESC')
   end
 
   # GET /entries/1
   # GET /entries/1.json
   def show
+    @entry = Entry.find(params[:id])
   end
 
   # GET /entries/new
@@ -26,7 +27,7 @@ class EntriesController < ApplicationController
   # POST /entries.json
   def create
     @entry = Entry.new(entry_params)
-
+    @entry.user = current_user
     respond_to do |format|
       if @entry.save
         format.html { redirect_to @entry, notice: 'Entry was successfully created.' }
@@ -55,10 +56,12 @@ class EntriesController < ApplicationController
   # DELETE /entries/1
   # DELETE /entries/1.json
   def destroy
-    @entry.destroy
-    respond_to do |format|
-      format.html { redirect_to entries_url, notice: 'Entry was successfully destroyed.' }
-      format.json { head :no_content }
+    if @entry.user == current_user
+      @entry.destroy
+      respond_to do |format|
+        format.html { redirect_to entries_url, notice: 'Entry was successfully destroyed.' }
+        format.json { head :no_content }
+      end
     end
   end
 
